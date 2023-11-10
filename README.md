@@ -60,3 +60,73 @@ kubectl delete -f k8s-specifications/
 * A [.NET](/worker/) worker which consumes votes and stores them in…
 * A [Postgres](https://hub.docker.com/_/postgres/) database backed by a Docker volume
 * A [Node.js](/result) web app which shows the results of the voting in real time
+
+
+## PS. 
+
+I use a different pipeline to build and push to my public DockerHub account, like this:
+```
+pipeline{
+    agent { 
+        node { 
+            label 'terra' 
+            } 
+        }
+
+    environment {
+        registry_worker = "kiljan963/example-voting-app-worker"
+        registry_vote = "kiljan963/example-voting-app-vote"
+        registry_result = "kiljan963/example-voting-app-result"
+        registryCredential = '3b570775-97b9-4808-a9bd-25977d8ceae7'
+        dockerImage_worker = ''
+        dockerImage_vote = ''
+        dockerImage_result = ''
+    } 
+
+    stages{
+        stage('Cloning  Git') {
+            steps { 
+                git 'https://github.com/Kiljan/Example-voting-app-test.git'
+            }
+        }
+        stage('Building images') {
+            steps{
+                dir('./worker'){
+                    script {
+                        dockerImage_worker = docker.build registry_worker + ":$BUILD_NUMBER"
+                        }
+                }
+                dir('./vote'){
+                    script {
+                        dockerImage_vote = docker.build registry_vote + ":$BUILD_NUMBER"
+                        }
+                }
+                dir('./result'){
+                    script {
+                        dockerImage_result = docker.build registry_result + ":$BUILD_NUMBER"
+                        }
+                }
+            }
+        }
+        stage('Deploy our image') {
+            steps{
+                script {
+                    docker.withRegistry( '', registryCredential ) {
+                    dockerImage_worker.push()
+                    dockerImage_vote.push()
+                    dockerImage_result.push()
+                    }
+                }
+            }
+        }
+        stage('Cleaning up'){
+            steps{
+                sh "docker rmi $registry_worker:$BUILD_NUMBER"
+                sh "docker rmi $registry_vote:$BUILD_NUMBER"
+                sh "docker rmi $registry_result:$BUILD_NUMBER"
+            }
+        }
+        
+    }
+}
+```
