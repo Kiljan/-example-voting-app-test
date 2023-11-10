@@ -7,9 +7,6 @@ pipeline {
 
     environment {
         DOKPATH = '/home/vv/example-voting-app'
-        registry_worker = "kiljan963/example-voting-app-worker"
-        registryCredential = '3b570775-97b9-4808-a9bd-25977d8ceae7'
-        dockerImage = ''
     }
 
     stages {
@@ -36,15 +33,5 @@ pipeline {
                 }
             }
         }
-        stage('Push to DockerHub') {
-            steps {
-                dir ("${DOKPATH}") {
-                    script{
-                        dockerImage = docker.build registry_worker + ":$BUILD_NUMBER"
-                    }
-                }
-            }
-        }
     }
 }
-
