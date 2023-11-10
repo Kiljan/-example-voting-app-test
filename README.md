@@ -81,6 +81,9 @@ pipeline{
         dockerImage_worker = ''
         dockerImage_vote = ''
         dockerImage_result = ''
+        dockerImage_worker_latest = ''
+        dockerImage_vote_latest = ''
+        dockerImage_result_latest = ''
     } 
 
     stages{
@@ -94,16 +97,19 @@ pipeline{
                 dir('./worker'){
                     script {
                         dockerImage_worker = docker.build registry_worker + ":$BUILD_NUMBER"
+                        dockerImage_worker_latest = docker.build registry_worker + ":latest"
                         }
                 }
                 dir('./vote'){
                     script {
                         dockerImage_vote = docker.build registry_vote + ":$BUILD_NUMBER"
+                        dockerImage_vote_latest = docker.build registry_vote + ":latest"
                         }
                 }
                 dir('./result'){
                     script {
                         dockerImage_result = docker.build registry_result + ":$BUILD_NUMBER"
+                        dockerImage_result_latest = docker.build registry_result + ":latest"
                         }
                 }
             }
@@ -115,6 +121,9 @@ pipeline{
                     dockerImage_worker.push()
                     dockerImage_vote.push()
                     dockerImage_result.push()
+                    dockerImage_worker_latest.push()
+                    dockerImage_vote_latest.push()
+                    dockerImage_result_latest.push()
                     }
                 }
             }
@@ -124,6 +133,9 @@ pipeline{
                 sh "docker rmi $registry_worker:$BUILD_NUMBER"
                 sh "docker rmi $registry_vote:$BUILD_NUMBER"
                 sh "docker rmi $registry_result:$BUILD_NUMBER"
+                sh "docker rmi $registry_worker:latest"
+                sh "docker rmi $registry_vote:latest"
+                sh "docker rmi $registry_result:latest"
             }
         }
         
